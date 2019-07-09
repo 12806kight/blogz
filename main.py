@@ -19,20 +19,40 @@ class Blog(db.Model):
 
 
 
-@app.route('/', methods=['POST', 'GET'])
+@app.route('/')
 def index():
+    return redirect('/newblog')
 
+@app.route('/blog', methods=['POST', 'GET'])
+def blog():
+    blog_id = request.args.get('id')
+
+    if blog_id == None:
+        posts = Blog.query.all()
+        return render_template('blog.html', posts=posts, title='Build-a-blog')
+
+    else:
+        post = Blog.query.get(blog_id)
+        return render_template('newblog.html', post=post, title='Blog Post')
+
+
+@app.route('/newblog', methods=['POST', 'GET'])
+def newblog():
+    blog_title = "" 
+    blog_body = ""
+    new_blog = Blog(blog_title, blog_body)
+        
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['body']
         new_blog = Blog(blog_title, blog_body)
         db.session.add(new_blog)
         db.session.commit()
-        
-    blogs = Blog.query.all()    
+        return render_template('newblog.html',title="Build A Blog", post=new_blog)
 
-    return render_template('newblog.html',title="Build A Blog", blogs=blogs)
+    return render_template('newblog.html',title="Build A Blog", post=new_blog)
 
+    
     
 if __name__ == '__main__':
     app.run()
