@@ -33,24 +33,25 @@ def blog():
 
     else:
         post = Blog.query.get(blog_id)
-        return render_template('newblog.html', post=post, title='Blog Post')
+        return render_template('post.html', post=post, title='Blog Post')
 
 
 @app.route('/newblog', methods=['POST', 'GET'])
 def newblog():
-    blog_title = "" 
-    blog_body = ""
+    blog_title= ""
+    blog_body= ""
     new_blog = Blog(blog_title, blog_body)
-        
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['body']
         new_blog = Blog(blog_title, blog_body)
         db.session.add(new_blog)
         db.session.commit()
-        return render_template('newblog.html',title="Build A Blog", post=new_blog)
-
+        return render_template('post.html',title="Build A Blog", post=new_blog)
     return render_template('newblog.html',title="Build A Blog", post=new_blog)
+        
+
+    
 
     
     
