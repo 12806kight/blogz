@@ -106,17 +106,17 @@ def user():
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
     blog_id = request.args.get('id')
-    
+    user_id = request.args.get('user.id')
 
     if blog_id == None:
-        user = request.args.get('user.id')
+        
         blogs = Blog.query.all()
-        return render_template('blog.html', blogs=blogs, user=user, title='Build-a-blog')
+        return render_template('blog.html', blogs=blogs, user_id=user_id, title='Build-a-blog')
 
     else:
         blog = Blog.query.get(blog_id)
-        user = request.args.get('id')
-        return render_template('post.html', blog=blog, user=user, title='Blog Post')
+        
+        return render_template('post.html', blog=blog, user_id=user_id, title='Blog Post')
 
 
 @app.route('/newblog', methods=['POST', 'GET'])
@@ -126,7 +126,7 @@ def newblog():
     title_error = ""
     body_error = ""
     owner = User.query.filter_by(username=session['username']).first()
-    new_blog = Blog(blog_title, blog_body, owner)
+    # new_blog = Blog(blog_title, blog_body, owner)
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['input']
