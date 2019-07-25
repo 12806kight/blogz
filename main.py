@@ -24,29 +24,29 @@ class Blog(db.Model):
 class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True)
+    username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
     blogs = db.relationship('Blog', backref='owner')
 
-    def __init__(self, email, password):
-        self.email = email
+    def __init__(self, username, password):
+        self.username = username
         self.password = password
 
 @app.before_request
 def require_login():
     allowed_routes = ['login', 'signup']
-    if request.endpoint not in allowed_routes and 'email' not in session:
+    if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect('/login')
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         if user and user.password == password:
-            session['email'] = email
+            session['username'] = username
             return redirect('/')
         else:
             # explain why the login failed
@@ -56,16 +56,16 @@ def login():
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
     if request.method == 'POST':
-        email = request.form['email']
+        username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
 
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
-            new_user = User(email, password)
+            new_user = User(username, password)
             db.session.add(new_user)
             db.session.commit()
-            session['email'] = email
+            session['username'] = username
             return redirect('/')
         else:
             return "Duplicate User"
@@ -73,12 +73,14 @@ def signup():
 
 @app.route('/logout')
 def logout():
-    del session['email']
+    del session['username']
     return redirect('/')
 
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
+    owner = User.query.filter_by(username=session['username']).first()
+
     user_id = request.args.get('id')
 
     if user_id == None:
@@ -86,22 +88,35 @@ def index():
         return render_template('index.html', user=user, title='Build-a-blog')
 
     else:
-        return "Blah Blah"
+        users = User.query.get(user_id)
+        return render_template('user.html', users=users, title='Blogs' )
+
+
+@app.route('/user', methods=['POST', 'GET'])
+def user():
+    user_id = request.args.get('id')
+    blogs = Blog.query.filter_by(owner_id=user_id)
+    return render_template('user.html', blogs=blogs,  title='Blogs' )
+
+
+
 
     
 
 @app.route('/blog', methods=['POST', 'GET'])
 def blog():
     blog_id = request.args.get('id')
+    
 
     if blog_id == None:
-      
+        user = request.args.get('user.id')
         blogs = Blog.query.all()
-        return render_template('blog.html', blogs=blogs, title='Build-a-blog')
+        return render_template('blog.html', blogs=blogs, user=user, title='Build-a-blog')
 
     else:
         blog = Blog.query.get(blog_id)
-        return render_template('post.html', blog=blog, title='Blog Post')
+        user = request.args.get('id')
+        return render_template('post.html', blog=blog, user=user, title='Blog Post')
 
 
 @app.route('/newblog', methods=['POST', 'GET'])
@@ -110,11 +125,12 @@ def newblog():
     blog_body = ""
     title_error = ""
     body_error = ""
-    owner = User.query.filter_by(email=session['email']).first()
+    owner = User.query.filter_by(username=session['username']).first()
     new_blog = Blog(blog_title, blog_body, owner)
     if request.method == 'POST':
         blog_title = request.form['title']
         blog_body = request.form['input']
+        
         if not blog_title:
             title_error = "Enter a title!!!"
         if not blog_body:
@@ -125,7 +141,6 @@ def newblog():
             db.session.commit()
             return render_template('post.html',title="Blog", blog=new_blog)
     return render_template('newblog.html',title="Build A Blog", title_error=title_error, blog_error=body_error, blog_title=blog_title, blog_body=blog_body)
-        
     
 if __name__ == '__main__':
     app.run()
