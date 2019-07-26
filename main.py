@@ -60,15 +60,41 @@ def signup():
         password = request.form['password']
         verify = request.form['verify']
 
-        existing_user = User.query.filter_by(username=username).first()
-        if not existing_user:
-            new_user = User(username, password)
-            db.session.add(new_user)
-            db.session.commit()
-            session['username'] = username
-            return redirect('/')
-        else:
-            return "Duplicate User"
+        username_error = ''
+        password_error = ''
+        verify_error=''
+
+        if len(username) < 3 or len(username) > 20:
+            username_error = 'Username should be inbetween 2 to 30 letters'
+            username = ''
+
+        if ' ' in username:
+            username_error = 'Username error'
+            username = ''
+
+        if ' ' in password:
+            password_error = 'Password Error'
+            password = ''
+
+
+        if len(password) < 3 or len(password) > 20:
+            password_error = 'Password should be inbetween 2 to 30 letters'
+            password = ''
+
+        if verify != password:
+            verify_error = 'Passwords must match'
+            verify = ''
+        if not username_error and not password_error and not verify_error:
+            existing_user = User.query.filter_by(username=username).first()
+            if not existing_user:
+                new_user = User(username, password)
+                db.session.add(new_user)
+                db.session.commit()
+                session['username'] = username
+                return redirect('/')
+            else:
+                return "Duplicate User"
+        return render_template('signup.html', ue=username_error, password_error=password_error, username=username, password=password, verify=verify, verify_error=verify_error)
     return render_template('signup.html')
 
 @app.route('/logout')

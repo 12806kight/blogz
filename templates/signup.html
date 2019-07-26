@@ -9,18 +9,21 @@
             <td>
                 <input name="username" type="text" value="{{username }}">
             </td>
+            <p>{{ue}}</p>
         </tr>
         <tr>
             <td><label for="password">Password</label></td>
             <td>
                 <input name="password" type="password">
             </td>
+            <p>{{username_error}}</p>
         </tr>
         <tr>
             <td><label for="verify">Verify Password</label></td>
             <td>
                 <input name="verify" type="password">
             </td>
+            <p>{{verify_error}}</p>
         </tr>
     </table>
     <input type="submit" value="Register">
